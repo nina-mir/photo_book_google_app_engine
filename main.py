@@ -29,18 +29,54 @@ CLOUD_STORAGE_BUCKET = os.environ.get("CLOUD_STORAGE_BUCKET")
 app = Flask(__name__)
 
 
+def get_image_datastore(key):
+    
+
+    # Create a Cloud Datastore client.
+    datastore_client = datastore.Client()
+    query = datastore_client.query(kind='pictures')
+
+    first_key = datastore_client.key('pictures', key)
+    # key_filter(key, op) translates to add_filter('__key__', op, key).
+    query.key_filter(first_key, '=')
+    result = query.fetch()
+    # [END datastore_key_filter]
+    
+    print("\n" + str(key))
+    # to_be_sent = list(result)
+
+    # print(list(result))
+    return list(result)
+
+
+
+
+    
+
+    # Use the Cloud Datastore client to fetch information from Datastore about
+    # each photo.
+    # query = datastore_client.query(kind="pictures")
+    # print("\n" + str(key))
+    # query.add_filter("timestamp", '=', str(key))
+
+    # result = query.fetch()
+
+
+    # print(list(result))
+    # return result
+
 @app.route("/")
 def homepage():
-    # # Create a Cloud Datastore client.
-    # datastore_client = datastore.Client()
-
-    # # Use the Cloud Datastore client to fetch information from Datastore about
-    # # each photo.
-    # query = datastore_client.query(kind="Faces")
-    # image_entities = list(query.fetch())
-
-    # Return a Jinja2 HTML template and pass in image_entities as a parameter.
     return render_template("homepage.html")
+
+@app.route('/<string:post_id>')
+def post(post_id):
+    image_entity = get_image_datastore(post_id)
+    print("_____")
+    print(image_entity)
+    print(image_entity[0]["blob_name"])
+    return render_template("post.html", image_entity=image_entity)
+
 
 @app.route("/photo_album")
 def photo_album():
@@ -52,7 +88,6 @@ def photo_album():
     # each photo.
     query = datastore_client.query()
     image_entities = list(query.fetch())
-    # print(image_entities)
     # Return a Jinja2 HTML template and pass in image_entities as a parameter.
     return render_template("photo_album.html", image_entities=image_entities)
 
@@ -115,7 +150,7 @@ def add_to_datastore(category, blob, meta_data):
     current_datetime = datetime.now()
 
     # The kind for the new entity.
-    kind = category
+    kind = 'pictures'
 
     # The name/ID for the new entity.
     name = blob.name
@@ -129,17 +164,24 @@ def add_to_datastore(category, blob, meta_data):
     entity["blob_name"] = blob.name
     entity["image_public_url"] = blob.public_url
     entity["timestamp"] = current_datetime
+    entity["meta_data"] = meta_data
+    entity["category"]  = category
 
     # Save the new entity to Datastore.
     datastore_client.put(entity)
 
 
 # A simple function to figure out the category of the Google Vision API response label JSON
-# into one of the 4 categories: people, animals, flowers or other
+# into one of the 4 categories: People, Animals, Flowers or Other
 def label_classifier(labels):
     
-    animals = ["Mammal", "Bird","Insect", "Insects", "Invertebrate", "Amphibian", "reptile", "Fish" 
-                ,"Mammal", "Birds", "Invertebrates", "Amphibians", "Reptiles"]
+    animals = [
+            "Mammal", "Bird","Insect", 
+            "Insects", "Invertebrate", "Amphibian", 
+            "reptile", "Fish","Mammal", 
+            "Birds", "Invertebrates", "Amphibians",
+            "Reptiles", "Carnivore", "Herbivore", "Omnivore"
+            ]
     people = ["Face", "Skin", "Lip", "Hair", "Glasses", "Faces", 
                 "Eye", "Eyes", "Hand", "Hands", "Foot", "Feet", "Head", "Nose"]
     flowers = ["Flowers", "Flower", "Plant", "Plants"]
@@ -154,7 +196,7 @@ def label_classifier(labels):
             result = "People"
             break 
         elif label.description in flowers:
-            result = "Flower"
+            result = "Flowers"
             break
     
     if result:
