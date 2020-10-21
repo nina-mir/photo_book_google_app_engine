@@ -80,25 +80,21 @@ def upload_photo():
     # Use the Cloud Vision client to detect a face for our image.
     source_uri = "gs://{}/{}".format(CLOUD_STORAGE_BUCKET, blob.name)
     image = vision.Image(source=vision.ImageSource(gcs_image_uri=source_uri))
-    faces = vision_client.face_detection(image=image).face_annotations
+    # faces = vision_client.face_detection(image=image).face_annotations
 
-    # If a face is detected, save to Datastore the likelihood that the face
-    # displays 'joy,' as determined by Google's Machine Learning algorithm.
-    if len(faces) > 0:
-        face = faces[0]
 
-        # Convert the likelihood string.
-        likelihoods = [
-            "Unknown",
-            "Very Unlikely",
-            "Unlikely",
-            "Possible",
-            "Likely",
-            "Very Likely",
-        ]
-        face_joy = likelihoods[face.joy_likelihood]
-    else:
-        face_joy = "Unknown"
+    # Performs label detection on the image file
+    response = vision_client.label_detection(image=image)
+    labels = response.label_annotations
+
+    print('Labels:')
+    for label in labels:
+        print(type(label))
+        print(label)
+        print(label.description)
+        print("------\n")
+
+    
 
     # Create a Cloud Datastore client.
     datastore_client = datastore.Client()
@@ -121,13 +117,15 @@ def upload_photo():
     entity["blob_name"] = blob.name
     entity["image_public_url"] = blob.public_url
     entity["timestamp"] = current_datetime
-    entity["joy"] = face_joy
+    # entity["joy"] = face_joy
 
     # Save the new entity to Datastore.
     datastore_client.put(entity)
 
     # Redirect to the home page.
-    return redirect("/")
+    # return redirect("/")
+    return render_template("homepage.html", labels=labels)
+
 
 
 @app.errorhandler(500)
