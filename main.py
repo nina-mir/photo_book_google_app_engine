@@ -50,8 +50,9 @@ def photo_album():
 
     # Use the Cloud Datastore client to fetch information from Datastore about
     # each photo.
-    query = datastore_client.query(kind="Faces")
+    query = datastore_client.query()
     image_entities = list(query.fetch())
+    # print(image_entities)
     # Return a Jinja2 HTML template and pass in image_entities as a parameter.
     return render_template("photo_album.html", image_entities=image_entities)
 
@@ -59,8 +60,14 @@ def photo_album():
 
 @app.route("/upload_photo", methods=["GET", "POST"])
 def upload_photo():
+    
+    meta_data = {}
+    # Receive user input data
     photo = request.files["file"]
-
+    meta_data['name'] = request.form['name']
+    meta_data['location'] = request.form['location']
+    meta_data['date'] = request.form['date']
+    
     # Create a Cloud Storage client.
     storage_client = storage.Client()
 
@@ -77,25 +84,30 @@ def upload_photo():
     # Create a Cloud Vision client.
     vision_client = vision.ImageAnnotatorClient()
 
-    # Use the Cloud Vision client to detect a face for our image.
+    # Use the Cloud Vision client to label the uploaded image.
     source_uri = "gs://{}/{}".format(CLOUD_STORAGE_BUCKET, blob.name)
     image = vision.Image(source=vision.ImageSource(gcs_image_uri=source_uri))
-    # faces = vision_client.face_detection(image=image).face_annotations
-
 
     # Performs label detection on the image file
     response = vision_client.label_detection(image=image)
     labels = response.label_annotations
 
-    print('Labels:')
-    for label in labels:
-        print(type(label))
-        print(label)
-        print(label.description)
-        print("------\n")
+    # category is used as the kind parametr for the new entity in Datastore
+    category = label_classifier(labels)
+    print(category)
+    if response.error.message:
+        raise Exception(
+            '{}\nFor more info on error messages, check: '
+            'https://cloud.google.com/apis/design/errors'.format(
+                response.error.message))
 
+    add_to_datastore(category, blob, meta_data)
     
+    return render_template("homepage.html", labels=labels)
 
+# Add an entity to the Google Datastore database associated with this project
+def add_to_datastore(category, blob, meta_data):
+    print("meta_data: ", str(meta_data))
     # Create a Cloud Datastore client.
     datastore_client = datastore.Client()
 
@@ -103,7 +115,7 @@ def upload_photo():
     current_datetime = datetime.now()
 
     # The kind for the new entity.
-    kind = "Faces"
+    kind = category
 
     # The name/ID for the new entity.
     name = blob.name
@@ -117,16 +129,40 @@ def upload_photo():
     entity["blob_name"] = blob.name
     entity["image_public_url"] = blob.public_url
     entity["timestamp"] = current_datetime
-    # entity["joy"] = face_joy
 
     # Save the new entity to Datastore.
     datastore_client.put(entity)
 
-    # Redirect to the home page.
-    # return redirect("/")
-    return render_template("homepage.html", labels=labels)
 
+# A simple function to figure out the category of the Google Vision API response label JSON
+# into one of the 4 categories: people, animals, flowers or other
+def label_classifier(labels):
+    
+    animals = ["Mammal", "Bird","Insect", "Insects", "Invertebrate", "Amphibian", "reptile", "Fish" 
+                ,"Mammal", "Birds", "Invertebrates", "Amphibians", "Reptiles"]
+    people = ["Face", "Skin", "Lip", "Hair", "Glasses", "Faces", 
+                "Eye", "Eyes", "Hand", "Hands", "Foot", "Feet", "Head", "Nose"]
+    flowers = ["Flowers", "Flower", "Plant", "Plants"]
+    
+    result = ""
 
+    for label in labels:
+        if label.description in animals:
+            result = "Animals"
+            break 
+        elif label.description in people:
+            result = "People"
+            break 
+        elif label.description in flowers:
+            result = "Flower"
+            break
+    
+    if result:
+        return result    
+    else:
+        return "Other"
+
+        
 
 @app.errorhandler(500)
 def server_error(e):

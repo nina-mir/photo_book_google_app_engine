@@ -10,8 +10,24 @@
     <br>
 
       <form action="upload_photo" method="POST" enctype="multipart/form-data">
-        Upload File: <input type="file" name="file"><br>
-        <input type="submit" name="submit" value="Submit">
+        <input class="btn-secondary" type="file" name="file"><br><hr>
+        <div class="form-group row">
+          <div class="col">
+            <input type="text" name="name"
+                  placeholder="Photographer's Name" class="form-control"
+                  value="{{ request.form['name'] }}"></input>
+          </div>
+          <div class="col">
+            <input name="location" placeholder="Location e.g. San Francisco, CA"
+                  class="form-control" value="{{ request.form['location'] }}"></input>
+          </div>
+          <div class="col">
+            <input name="date" placeholder="Date: September-24-2020 or 09/14/2020 or whatever"
+                  class="form-control" value="{{ request.form['date'] }}"></input>
+          </div>
+        </div>
+
+        <input class="btn btn-primary" type="submit" name="submit" value="Submit">
       </form>
       <div>
         {% for label in labels %}
