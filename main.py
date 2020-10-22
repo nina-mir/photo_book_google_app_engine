@@ -39,26 +39,24 @@ def get_image_datastore(key):
     first_key = datastore_client.key('pictures', key)
     # key_filter(key, op) translates to add_filter('__key__', op, key).
     query.key_filter(first_key, '=')
+
     result = query.fetch()
-    # [END datastore_key_filter]
-    
-    print("\n" + str(key))
-    
+    # [END datastore_key_filter]    
     return list(result)
 
 @app.route("/")
 def homepage():
     return render_template("homepage.html")
 
-@app.route('/post/<string:post_id>')
+@app.route('/post/<int:post_id>')
 def post(post_id):
     image_entity = get_image_datastore(post_id)
     print("_____")
-    print(image_entity)
-    print(image_entity[0]["blob_name"])
+    # print(image_entity)
+    # print(image_entity[0]["blob_name"])
     return render_template("post.html", image_entity=image_entity)
 
-@app.route('/edit/<string:post_id>')
+@app.route('/edit/<int:post_id>')
 def edit(post_id):
     image_entity = get_image_datastore(post_id)
     print(" ... of edit ...")
@@ -94,8 +92,8 @@ def save_to_cloud_storage(photo):
     return blob
 
 # To delete a blob aka image file in this project from the Cloud Storage
-@app.route('/delete/<string:blob_name>')
-def delete_blob(blob_name):
+@app.route('/delete/<string:blob_name>/<int:post_id>')
+def delete_blob(blob_name, post_id):
     """Deletes a blob from the bucket."""
     # bucket_name = "your-bucket-name"
     # blob_name = "your-object-name"
@@ -110,9 +108,10 @@ def delete_blob(blob_name):
         print("Blob {} deleted.".format(blob_name))
         flash('"{}" was successfully deleted!'.format(blob_name))
     # Let's delete the corresponding entity in Datastore too
-        delete_entry_from_datastore(blob_name)
+        delete_entry_from_datastore(post_id)
     except exceptions.NotFound as e:
         flash(' Error: "{}" !'.format(e))
+        delete_entry_from_datastore(post_id)
 
     
 
@@ -162,6 +161,44 @@ def upload_photo():
     
     return render_template("homepage.html", labels=labels)
 
+
+@app.route('/<string:blob_name>/<int:post_id>/edit_photo', methods=["GET", "POST"])
+def edit_photo(blob_name, post_id):
+    
+    meta_data = {}
+    # Receive user input data
+    photo = request.files["file"]    
+    meta_data['name'] = request.form['name']
+    meta_data['location'] = request.form['location']
+    meta_data['date'] = request.form['date']
+    
+    # Current entity being edited
+    curr_entity = get_image_datastore(post_id)
+    category = curr_entity[0]['category']
+
+    storage_client = storage.Client()
+    bucket = storage_client.bucket(CLOUD_STORAGE_BUCKET)
+    blob = bucket.blob(blob_name)
+
+    if photo:
+        print("was hat geschehen?")
+        blob.delete()
+        # Save the newly uploaded image file to the Cloud Storage
+        blob =  save_to_cloud_storage(photo)
+        # Call Google Vision API
+        labels = call_vision_api(blob)
+        # category is either animals, flowers, people or other as per course project
+        category = label_classifier(labels)
+        print(category)
+        add_to_datastore(category, blob, meta_data)
+    else: 
+        update_entry_datastore(post_id, meta_data)
+
+
+    return redirect(url_for('edit', post_id= post_id))
+
+    # return render_template("homepage.html")
+
 # Add an entity to the Google Datastore database associated with this project
 def add_to_datastore(category, blob, meta_data):
     print("meta_data: ", str(meta_data))
@@ -178,10 +215,10 @@ def add_to_datastore(category, blob, meta_data):
     name = blob.name
 
     # Create the Cloud Datastore key for the new entity.
-    key = datastore_client.key(kind, name)
+    key = datastore_client.key(kind)
 
     # Construct the new entity using the key. Set dictionary values for entity
-    # keys blob_name, storage_public_url, timestamp, and joy.
+    # keys blob_name, storage_public_url, timestamp.
     entity = datastore.Entity(key)
     entity["blob_name"] = blob.name
     entity["image_public_url"] = blob.public_url
@@ -194,13 +231,21 @@ def add_to_datastore(category, blob, meta_data):
 
 # Delete an entity from the Google Datastore database associated with this project 
 def delete_entry_from_datastore(key):
-
     # Create a Cloud Datastore client.
     datastore_client = datastore.Client()
-    query = datastore_client.query(kind='pictures')
-
     key = datastore_client.key('pictures', key)
     datastore_client.delete(key)
+
+# Update an entity from Google Datastore associated with this project
+def update_entry_datastore(post_id, meta_data):
+    # Update the corresponding Datastore entity
+    # Create a Cloud Datastore client.
+    datastore_client = datastore.Client()
+    # query = datastore_client.query(kind='pictures')
+    first_key = datastore_client.key('pictures', post_id)
+    entity = datastore_client.get(first_key)
+    entity['meta_data'] = meta_data
+    datastore_client.put(entity)
 
 
 # A simple function to figure out the category of the Google Vision API response label JSON

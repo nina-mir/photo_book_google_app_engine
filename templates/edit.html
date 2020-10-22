@@ -13,4 +13,24 @@
         </div>
     </div>
     <hr>
+    <form action="{{ url_for('edit_photo', blob_name = image_entity[0]['blob_name'], post_id = image_entity[0]['id'] ) }}" method="POST" enctype="multipart/form-data">
+        <input class="btn-secondary rounded" type="file" name="file"><br><hr>
+        <div class="form-group row">
+          <div class="col">
+            <input type="text" name="name"
+                  placeholder="Photographer's Name" class="form-control"
+                  value="{{ request.form['name'] or image_entity[0]['meta_data']['name'] }}"></input>
+          </div>
+          <div class="col">
+            <input name="location" placeholder="Location e.g. San Francisco, CA"
+                  class="form-control" value="{{ request.form['location'] or image_entity[0]['meta_data']['location'] }}"></input>
+          </div>
+          <div class="col">
+            <input name="date" placeholder="Date: September-24-2020 or 09/14/2020 or whatever"
+                  class="form-control" value="{{ request.form['date'] or image_entity[0]['meta_data']['date']}}"></input>
+          </div>
+        </div>
+        <input class="btn btn-primary rounded" type="submit" name="submit" value="Submit">
+    </form>
+    <hr>
 {% endblock %}
