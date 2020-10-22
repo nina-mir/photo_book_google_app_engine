@@ -4,6 +4,10 @@
 
 # Python Google Cloud Vision sample for Google App Engine Flexible Environment
 
+## resource 1: https://github.com/GoogleCloudPlatform/python-docs-samples/blob/bd1afc18e165f39747b5318cc7747e6fba2d55ab/datastore/cloud-client/snippets.py#L410-L413
+
+## resource 2: https://github.com/GoogleCloudPlatform/python-docs-samples/blob/master/codelabs/flex_and_vision/main.py
+
 [![Open in Cloud Shell][shell_img]][shell_link]
 
 [shell_img]: http://gstatic.com/cloudssh/images/open-btn.png
