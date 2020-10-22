@@ -30,8 +30,6 @@ app = Flask(__name__)
 
 
 def get_image_datastore(key):
-    
-
     # Create a Cloud Datastore client.
     datastore_client = datastore.Client()
     query = datastore_client.query(kind='pictures')
@@ -43,33 +41,14 @@ def get_image_datastore(key):
     # [END datastore_key_filter]
     
     print("\n" + str(key))
-    # to_be_sent = list(result)
-
-    # print(list(result))
-    return list(result)
-
-
-
-
     
-
-    # Use the Cloud Datastore client to fetch information from Datastore about
-    # each photo.
-    # query = datastore_client.query(kind="pictures")
-    # print("\n" + str(key))
-    # query.add_filter("timestamp", '=', str(key))
-
-    # result = query.fetch()
-
-
-    # print(list(result))
-    # return result
+    return list(result)
 
 @app.route("/")
 def homepage():
     return render_template("homepage.html")
 
-@app.route('/<string:post_id>')
+@app.route('/post/<string:post_id>')
 def post(post_id):
     image_entity = get_image_datastore(post_id)
     print("_____")
@@ -77,6 +56,11 @@ def post(post_id):
     print(image_entity[0]["blob_name"])
     return render_template("post.html", image_entity=image_entity)
 
+@app.route('/edit/<string:post_id>')
+def edit(post_id):
+    image_entity = get_image_datastore(post_id)
+    print(" ... of edit ...")
+    return render_template("edit.html", image_entity=image_entity)
 
 @app.route("/photo_album")
 def photo_album():
@@ -92,17 +76,7 @@ def photo_album():
     return render_template("photo_album.html", image_entities=image_entities)
 
 
-
-@app.route("/upload_photo", methods=["GET", "POST"])
-def upload_photo():
-    
-    meta_data = {}
-    # Receive user input data
-    photo = request.files["file"]
-    meta_data['name'] = request.form['name']
-    meta_data['location'] = request.form['location']
-    meta_data['date'] = request.form['date']
-    
+def save_to_cloud_storage(photo):
     # Create a Cloud Storage client.
     storage_client = storage.Client()
 
@@ -115,7 +89,9 @@ def upload_photo():
 
     # Make the blob publicly viewable.
     blob.make_public()
+    return blob
 
+def call_vision_api(blob):
     # Create a Cloud Vision client.
     vision_client = vision.ImageAnnotatorClient()
 
@@ -125,17 +101,33 @@ def upload_photo():
 
     # Performs label detection on the image file
     response = vision_client.label_detection(image=image)
-    labels = response.label_annotations
-
-    # category is used as the kind parametr for the new entity in Datastore
-    category = label_classifier(labels)
-    print(category)
     if response.error.message:
         raise Exception(
             '{}\nFor more info on error messages, check: '
             'https://cloud.google.com/apis/design/errors'.format(
                 response.error.message))
 
+    return response.label_annotations
+
+
+@app.route("/upload_photo", methods=["GET", "POST"])
+def upload_photo():
+    
+    meta_data = {}
+    # Receive user input data
+    photo = request.files["file"]
+    meta_data['name'] = request.form['name']
+    meta_data['location'] = request.form['location']
+    meta_data['date'] = request.form['date']
+    
+    blob =  save_to_cloud_storage(photo)
+
+    labels = call_vision_api(blob)
+
+    # category is used as the kind parametr for the new entity in Datastore
+    category = label_classifier(labels)
+    print(category)
+    
     add_to_datastore(category, blob, meta_data)
     
     return render_template("homepage.html", labels=labels)

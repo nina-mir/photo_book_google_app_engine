@@ -36,7 +36,8 @@
           <h3 class="d-inline-block">Results of the Google Vision API call: </h3>
           <div class="row">
             <div class="col">
-              <pre><code>
+              <pre>
+                <code>
 # Create a Cloud Vision client.
 vision_client = vision.ImageAnnotatorClient()
 
@@ -47,7 +48,8 @@ image = vision.Image(source=vision.ImageSource(gcs_image_uri=source_uri))
 # Performs label detection on the image file
 response = vision_client.label_detection(image=image)
 labels = response.label_annotations
-              </code></pre>            
+                </code>
+              </pre>            
             </div>
             <div class="col">
               {% for label in labels %}

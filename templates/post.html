@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <div class="row">
+        <div class="column">
+            <img src="{{image_entity[0]['image_public_url']}}" width=400 >
+            <p class="p-3 my-2 bg-dark text-white">{{image_entity[0]['blob_name']}} was uploaded {{image_entity[0]['timestamp']}}.</p>    
+        </div>
+        <div class="column">
+            <p class="p-3 mx-2 bg-primary text-white">Photographer: {{image_entity[0]['meta_data']['name']}}</p>
+            <p class="p-3 mx-2 bg-secondary text-white">Location: {{image_entity[0]['meta_data']['location']}}</p>
+            <p class="p-3 mx-2 bg-success text-white">Date Taken: {{image_entity[0]['meta_data']['date']}}</p>    
+        </div>
+    </div>
+    <hr>
+{% endblock %}
