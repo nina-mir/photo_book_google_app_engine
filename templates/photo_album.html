@@ -10,13 +10,17 @@
             <div class="row">
                 {% for image_entity in image_entities %}
                     {% if image_entity['category'] ==  category  %}
-                        <div class="column">
+                        <div class="column p-2">
                             <a href="{{ url_for('edit', post_id = image_entity['blob_name']) }}">
-                                <span class="badge badge-warning">Edit</span>
+                                <span class="badge badge-info">Edit</span>
                             </a>
                             <a href="{{ url_for('post', post_id = image_entity['blob_name'] ) }}">
                                 <img src="{{image_entity['image_public_url']}}" width=200>
                             </a>
+                            <a href="{{ url_for('delete_blob', blob_name = image_entity['blob_name']) }}">
+                                <span class="badge badge-warning">Delete</span>
+                            </a>
+
                         </div>
                     {% endif %}
                 {% endfor %}

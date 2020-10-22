@@ -21,13 +21,15 @@ from flask import Flask, redirect, render_template, request, url_for, flash
 from google.cloud import datastore
 from google.cloud import storage
 from google.cloud import vision
+from google.api_core import exceptions
+
 
 
 CLOUD_STORAGE_BUCKET = os.environ.get("CLOUD_STORAGE_BUCKET")
 
 
 app = Flask(__name__)
-
+app.config['SECRET_KEY'] = '09876543211234567890'
 
 def get_image_datastore(key):
     # Create a Cloud Datastore client.
@@ -75,7 +77,7 @@ def photo_album():
     # Return a Jinja2 HTML template and pass in image_entities as a parameter.
     return render_template("photo_album.html", image_entities=image_entities)
 
-
+# To save an image file to Cloud Storage
 def save_to_cloud_storage(photo):
     # Create a Cloud Storage client.
     storage_client = storage.Client()
@@ -90,6 +92,32 @@ def save_to_cloud_storage(photo):
     # Make the blob publicly viewable.
     blob.make_public()
     return blob
+
+# To delete a blob aka image file in this project from the Cloud Storage
+@app.route('/delete/<string:blob_name>')
+def delete_blob(blob_name):
+    """Deletes a blob from the bucket."""
+    # bucket_name = "your-bucket-name"
+    # blob_name = "your-object-name"
+
+    storage_client = storage.Client()
+
+    bucket = storage_client.bucket(CLOUD_STORAGE_BUCKET)
+    blob = bucket.blob(blob_name)
+    
+    try:
+        blob.delete()
+        print("Blob {} deleted.".format(blob_name))
+        flash('"{}" was successfully deleted!'.format(blob_name))
+    # Let's delete the corresponding entity in Datastore too
+        delete_entry_from_datastore(blob_name)
+    except exceptions.NotFound as e:
+        flash(' Error: "{}" !'.format(e))
+
+    
+
+    return redirect(url_for('photo_album'))
+
 
 def call_vision_api(blob):
     # Create a Cloud Vision client.
@@ -120,8 +148,10 @@ def upload_photo():
     meta_data['location'] = request.form['location']
     meta_data['date'] = request.form['date']
     
+    # Save the file to Cloud Storage
     blob =  save_to_cloud_storage(photo)
 
+    # Call Google Vision API
     labels = call_vision_api(blob)
 
     # category is used as the kind parametr for the new entity in Datastore
@@ -161,6 +191,16 @@ def add_to_datastore(category, blob, meta_data):
 
     # Save the new entity to Datastore.
     datastore_client.put(entity)
+
+# Delete an entity from the Google Datastore database associated with this project 
+def delete_entry_from_datastore(key):
+
+    # Create a Cloud Datastore client.
+    datastore_client = datastore.Client()
+    query = datastore_client.query(kind='pictures')
+
+    key = datastore_client.key('pictures', key)
+    datastore_client.delete(key)
 
 
 # A simple function to figure out the category of the Google Vision API response label JSON
