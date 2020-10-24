@@ -1,12 +1,18 @@
-# This photo book project is built on top of a tutorial by Google
-# 2nd project of my cloud computing course by Dr. Yang @ SFSU, Fall 2020
+## This photo book project is built on top of a tutorial by Google
+## 2nd project of my cloud computing course by Dr. Yang @ SFSU, Fall 2020
 
 
-# Python Google Cloud Vision sample for Google App Engine Flexible Environment
+## Python Google Cloud Vision sample for Google App Engine Flexible Environment
 
-## resource 1: https://github.com/GoogleCloudPlatform/python-docs-samples/blob/bd1afc18e165f39747b5318cc7747e6fba2d55ab/datastore/cloud-client/snippets.py#L410-L413
+### resource 1: https://github.com/GoogleCloudPlatform/python-docs-samples/blob/bd1afc18e165f39747b5318cc7747e6fba2d55ab/datastore/cloud-client/snippets.py#L410-L413
 
-## resource 2: https://github.com/GoogleCloudPlatform/python-docs-samples/blob/master/codelabs/flex_and_vision/main.py
+### resource 2: https://github.com/GoogleCloudPlatform/python-docs-samples/blob/master/codelabs/flex_and_vision/main.py
+
+
+Please follow the following instructions to run this project on Google App Engine:
+
+
+
 
 [![Open in Cloud Shell][shell_img]][shell_link]
 
