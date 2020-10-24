@@ -1,15 +1,15 @@
-## This photo book project is built on top of a tutorial by Google
-## 2nd project of my cloud computing course by Dr. Yang @ SFSU, Fall 2020
+This photo book project is built on top of a tutorial by Google
+2nd project of my cloud computing course by Dr. Yang @ SFSU, Fall 2020
 
 
-## Python Google Cloud Vision sample for Google App Engine Flexible Environment
+Python Google Cloud Vision sample for Google App Engine Flexible Environment
 
-### [resource 1 (how to do perform CRUD operations with Google Datastore)](https://github.com/GoogleCloudPlatform/python-docs-samples/blob/bd1afc18e165f39747b5318cc7747e6fba2d55ab/datastore/cloud-client/snippets.py#L410-L413)
+[resource 1 (how to do perform CRUD operations with Google Datastore)](https://github.com/GoogleCloudPlatform/python-docs-samples/blob/bd1afc18e165f39747b5318cc7747e6fba2d55ab/datastore/cloud-client/snippets.py#L410-L413)
 
-### [resource 2:](https://github.com/GoogleCloudPlatform/python-docs-samples/blob/master/codelabs/flex_and_vision/main.py)
-#### Amazing tutorial in Pyton > 3.5 in Flask that I used to create this project; I highly recommnd going over this tutorial's code and repo to get a clear picutre on how to communicate with Datastore, Cloud Storage Bucket, and Google Vision API
+[resource 2:](https://github.com/GoogleCloudPlatform/python-docs-samples/blob/master/codelabs/flex_and_vision/main.py)
+ Amazing tutorial in Pyton > 3.5 in Flask that I used to create this project; I highly recommnd going over this tutorial's code and repo to get a clear picutre on how to communicate with Datastore, Cloud Storage Bucket, and Google Vision API
 
-Please follow the following instructions to run this project on Google App Engine:
+#### Please follow the following instructions to run this project on Google App Engine:
 
 
 
