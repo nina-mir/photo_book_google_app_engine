@@ -9,8 +9,7 @@ Python Google Cloud Vision sample for Google App Engine Flexible Environment
 [resource 2:](https://github.com/GoogleCloudPlatform/python-docs-samples/blob/master/codelabs/flex_and_vision/main.py)
  Amazing tutorial in Pyton > 3.5 in Flask that I used to create this project; I highly recommnd going over this tutorial's code and repo to get a clear picutre on how to communicate with Datastore, Cloud Storage Bucket, and Google Vision API
 
-[![IMAGE ALT TEXT](https://imgur.com/a/c7pR2ik)](https://www.youtube.com/watch?v=MUlJfU4HRTE "Video Link")
-
+[![IMAGE ALT TEXT](http://img.youtube.com/vi/MUlJfU4HRTE/0.jpg)](http://www.youtube.com/watch?v=MUlJfU4HRTE "Video Title")
 
 
 https://imgur.com/a/c7pR2ik
